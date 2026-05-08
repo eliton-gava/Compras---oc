@@ -1,0 +1,4 @@
+Pedido,Fornecedor,Status compra,Status entrega,Transportadora,Código rastreio,Data prev. entrega,Data recebimento,Qtd itens recebidos,Qtd itens pedidos,Observação entrega
+PC-0002,SUPERMERCADO TESTE,Aprovada,Entregue parcialmente,,,10/05/2026,08/05/2026,10,20,
+PC-0002,SUPERMERCADO TESTE,Recebida,Entregue,,,10/05/2026,08/05/2026,10,20,
+PC-0001,gava,Recebida,Entregue,,,17/05/2026,08/05/2026,50,50,

@@ -1,0 +1,45 @@
+==================================================
+         RELATÓRIO DE COMPRA
+==================================================
+Pedido            : PC-0002
+Registro          : 08/05/2026 16:01:16
+Status            : Aprovada
+--------------------------------------------------
+Fornecedor        : SUPERMERCADO TESTE
+CNPJ/CPF          : 00000000000000
+Data compra       : 08/05/2026
+Data faturamento  : 15/05/2026
+Prazo entrega     : 2 dias  (previsão: 10/05/2026)
+Pagamento         : [1] Boleto
+Parcelas          : 2x  →  15/05/2026, 15/06/2026
+Centro de custo   : Administrativo
+Moeda             : BRL
+Observações       : ENTREGAR AS 15:00
+--------------------------------------------------
+
+  Código     : 1
+  Produto    : CAFÉ
+  Quantidade : 10
+  Valor unit.: R$ 32.50
+  ICMS       : 12.0%  | R$ 39.00
+  IPI        : 5.0%   | R$ 16.25
+  Desconto   : R$ 0.00
+  Subtotal   : R$ 380.25
+  Obs        : MELITA
+  ----------------------------------------------
+  Código     : 2
+  Produto    : LEITE
+  Quantidade : 10
+  Valor unit.: R$ 5.50
+  ICMS       : 12.0%  | R$ 6.60
+  IPI        : 5.0%   | R$ 2.75
+  Desconto   : R$ 0.00
+  Subtotal   : R$ 64.35
+  Obs        : TIROL
+  ----------------------------------------------
+
+Subtotal produtos : R$ 444.60
+Desconto geral    : R$ 0.00
+Frete             : R$ 150.00
+TOTAL FINAL       : R$ 594.60
+==================================================

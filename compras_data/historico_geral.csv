@@ -1,2 +1,3 @@
 Pedido,Data Compra,Fornecedor,CNPJ/CPF,Nota Fiscal,Status,Pagamento,Centro Custo,Moeda,Total Final,Total Final BRL,Data Registro
 PC-0001,07/05/2026,gava,00000000000000,,Pendente,[3] PIX,Manutenção,BRL,68.5,68.5,07/05/2026 17:53:59
+PC-0002,08/05/2026,SUPERMERCADO TESTE,00000000000000,,Aprovada,[1] Boleto,Administrativo,BRL,594.6,594.6,08/05/2026 16:01:16

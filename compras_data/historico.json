@@ -8,12 +8,12 @@
     "data_faturamento": "07/05/2026",
     "prazo_entrega": "10 dias",
     "data_entrega_prev": "17/05/2026",
-    "data_recebimento": "",
+    "data_recebimento": "08/05/2026",
     "pagamento": "[3] PIX",
     "parcelas": 1,
     "vencimentos": [],
     "centro_custo": "Manutenção",
-    "status": "Aprovada",
+    "status": "Recebida",
     "moeda": "BRL",
     "cotacao_brl": 1.0,
     "frete": 10.0,
@@ -39,6 +39,122 @@
     "desc_geral": 0.0,
     "total_final": 68.5,
     "total_final_brl": 68.5,
-    "data_registro": "07/05/2026 17:53:59"
+    "data_registro": "07/05/2026 17:53:59",
+    "entrega": {
+      "historico_status": [
+        {
+          "status": "Entregue",
+          "data": "08/05/2026",
+          "obs": "Recebido conforme"
+        }
+      ],
+      "status_entrega": "Entregue",
+      "conferencia": [
+        {
+          "codigo": "1225",
+          "nome": "agua",
+          "qtd_pedida": 50,
+          "qtd_recebida": 50,
+          "divergencia": false,
+          "obs": ""
+        }
+      ],
+      "qtd_recebida": 50,
+      "obs_entrega": ""
+    }
+  },
+  {
+    "num_pedido": "PC-0002",
+    "fornecedor": "SUPERMERCADO TESTE",
+    "cnpj_cpf": "00000000000000",
+    "nota_fiscal": "1212",
+    "data_compra": "08/05/2026",
+    "data_faturamento": "15/05/2026",
+    "prazo_entrega": "2 dias",
+    "data_entrega_prev": "10/05/2026",
+    "data_recebimento": "08/05/2026",
+    "pagamento": "[1] Boleto",
+    "parcelas": 2,
+    "vencimentos": [
+      "15/05/2026",
+      "15/06/2026"
+    ],
+    "centro_custo": "Administrativo",
+    "status": "Recebida",
+    "moeda": "BRL",
+    "cotacao_brl": 1.0,
+    "frete": 150.0,
+    "frete_brl": 150.0,
+    "obs_geral": "ENTREGAR AS 15:00",
+    "produtos": [
+      {
+        "codigo": "1",
+        "nome": "CAFÉ",
+        "valor_unit": 32.5,
+        "quantidade": 10,
+        "icms_perc": 12.0,
+        "icms_valor": 39.0,
+        "ipi_perc": 5.0,
+        "ipi_valor": 16.25,
+        "desconto": 0.0,
+        "subtotal": 380.25,
+        "subtotal_brl": 380.25,
+        "obs": "MELITA"
+      },
+      {
+        "codigo": "2",
+        "nome": "LEITE",
+        "valor_unit": 5.5,
+        "quantidade": 10,
+        "icms_perc": 12.0,
+        "icms_valor": 6.6,
+        "ipi_perc": 5.0,
+        "ipi_valor": 2.75,
+        "desconto": 0.0,
+        "subtotal": 64.35,
+        "subtotal_brl": 64.35,
+        "obs": "TIROL"
+      }
+    ],
+    "total_produtos": 444.6,
+    "desc_geral": 0.0,
+    "total_final": 594.6,
+    "total_final_brl": 594.6,
+    "data_registro": "08/05/2026 16:01:16",
+    "entrega": {
+      "status_entrega": "Entregue",
+      "historico_status": [
+        {
+          "status": "Entregue parcialmente",
+          "data": "08/05/2026",
+          "obs": "Com divergências"
+        },
+        {
+          "status": "Entregue",
+          "data": "08/05/2026",
+          "obs": ""
+        }
+      ],
+      "conferencia": [
+        {
+          "codigo": "1",
+          "nome": "CAFÉ",
+          "qtd_pedida": 10,
+          "qtd_recebida": 5,
+          "divergencia": true,
+          "obs": ""
+        },
+        {
+          "codigo": "2",
+          "nome": "LEITE",
+          "qtd_pedida": 10,
+          "qtd_recebida": 5,
+          "divergencia": true,
+          "obs": ""
+        }
+      ],
+      "qtd_recebida": 10,
+      "obs_entrega": ""
+    }
   }
 ]
