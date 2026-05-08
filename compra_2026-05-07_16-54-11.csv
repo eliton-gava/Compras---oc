@@ -1,0 +1,10 @@
+Fornecedor,Data Compra,Data Faturamento,Prazo Entrega,Pagamento,Frete
+GAVA,07/05/2026,07/05/2026,10,[1] Boleto,150.00
+
+Código,Produto,Valor Unitário,Quantidade,ICMS (%),ICMS Valor,IPI (%),IPI Valor,Desconto,Subtotal
+1,FRETE,180.0,2,17.0,61.2,7.0,25.200000000000003,0.0,446.4
+
+,,,,,,,,Subtotal produtos,446.40
+,,,,,,,,Desconto geral,0.00
+,,,,,,,,Frete,150.00
+,,,,,,,,TOTAL FINAL,596.40

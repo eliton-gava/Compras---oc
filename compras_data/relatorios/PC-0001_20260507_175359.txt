@@ -1,0 +1,32 @@
+==================================================
+         RELATÓRIO DE COMPRA
+==================================================
+Pedido            : PC-0001
+Registro          : 07/05/2026 17:53:59
+Status            : Pendente
+--------------------------------------------------
+Fornecedor        : gava
+CNPJ/CPF          : 00000000000000
+Data compra       : 07/05/2026
+Data faturamento  : 07/05/2026
+Prazo entrega     : 10 dias  (previsão: 17/05/2026)
+Pagamento         : [3] PIX
+Centro de custo   : Manutenção
+Moeda             : BRL
+--------------------------------------------------
+
+  Código     : 1225
+  Produto    : agua
+  Quantidade : 50
+  Valor unit.: R$ 1.00
+  ICMS       : 12.0%  | R$ 6.00
+  IPI        : 5.0%   | R$ 2.50
+  Desconto   : R$ 0.00
+  Subtotal   : R$ 58.50
+  ----------------------------------------------
+
+Subtotal produtos : R$ 58.50
+Desconto geral    : R$ 0.00
+Frete             : R$ 10.00
+TOTAL FINAL       : R$ 68.50
+==================================================
