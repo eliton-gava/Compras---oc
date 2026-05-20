@@ -1514,6 +1514,12 @@ def gerar_pdf(c, sim, caminho_destino=None):
     estilos = getSampleStyleSheet()
 
     # ── Estilos customizados ──
+    empresa_doc = ParagraphStyle(
+        "empresa_doc", parent=estilos["Heading1"],
+        fontSize=22, textColor=colors.HexColor("#1a1a2e"),
+        spaceAfter=1, alignment=TA_CENTER,
+        fontName="Helvetica-Bold",
+    )
     titulo_doc = ParagraphStyle(
         "titulo_doc", parent=estilos["Heading1"],
         fontSize=16, textColor=colors.HexColor("#1a1a2e"),
@@ -1555,6 +1561,8 @@ def gerar_pdf(c, sim, caminho_destino=None):
     story = []
 
     # ── Cabeçalho ──
+    story.append(Paragraph("GAVA EXPRESS LTDA", empresa_doc))
+    story.append(Spacer(1, 6))
     story.append(Paragraph("PEDIDO DE COMPRA", titulo_doc))
     story.append(Paragraph(
         f"Nº {c['num_pedido']}  |  Emitido em: {c['data_registro']}  |  Status: {c['status']}",
