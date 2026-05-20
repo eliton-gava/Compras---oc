@@ -18,5 +18,25 @@
     "data_cadastro": "20/05/2026 15:57:06",
     "total_compras": 1,
     "valor_total_brl": 495.0
+  },
+  {
+    "codigo": "PROD-0002",
+    "nome": "Caneta",
+    "descricao": "",
+    "marca": "BIC",
+    "modelo": "Ponta Fina",
+    "categoria": "TI / Informática",
+    "unidade": "UN",
+    "ncm": "",
+    "ean": "",
+    "icms_padrao": 0.0,
+    "ipi_padrao": 0.0,
+    "preco_medio": 1.0,
+    "estoque_minimo": 10.0,
+    "obs": "",
+    "ativo": true,
+    "data_cadastro": "20/05/2026 16:36:29",
+    "total_compras": 1,
+    "valor_total_brl": 75.0
   }
 ]

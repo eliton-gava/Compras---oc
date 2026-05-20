@@ -1,0 +1,10 @@
+Pedido,Fornecedor,Cód. Fornecedor,CNPJ/CPF,Nota Fiscal,Data Compra,Data Faturamento,Prazo,Previsão Entrega,Pagamento,Parcelas,Vencimentos,Centro Custo,Status,Moeda,Cotação BRL,Frete,Obs Geral
+PC-0005,GAVA TRANSPORTES,FOR-0001,55.397.440/0001-16,,20/05/2026,20/05/2026,2 dias,22/05/2026,[1] Boleto,1,,TI,Pendente,BRL,1.0,10.0,
+
+Código,Produto,Valor Unit.,Qtd,ICMS%,ICMS Valor,IPI%,IPI Valor,Desconto,Subtotal,Subtotal (BRL),Obs
+PROD-0002,Caneta,1.5,50,0.0,0.0,0.0,0.0,0.0,75.0,75.0,
+
+,,,,,,,,Subtotal,75.0,,
+,,,,,,,,Desc. geral,0.0,,
+,,,,,,,,Frete,10.0,,
+,,,,,,,,TOTAL FINAL,85.0,85.0,
