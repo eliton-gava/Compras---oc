@@ -15,6 +15,8 @@ HISTORICO_JSON  = DIR_BASE / "historico.json"
 HISTORICO_CSV   = DIR_BASE / "historico_geral.csv"
 OCORRENCIAS_JSON = DIR_BASE / "ocorrencias.json"
 ENTREGAS_CSV    = DIR_BASE / "entregas_geral.csv"
+FORNECEDORES_JSON = DIR_BASE / "fornecedores.json"
+PRODUTOS_JSON     = DIR_BASE / "produtos.json"
 
 for d in (DIR_BASE, DIR_TXT, DIR_CSV, DIR_ENTREGAS):
     d.mkdir(parents=True, exist_ok=True)
@@ -82,6 +84,17 @@ TRANSPORTADORAS_PADRAO = [
     "Correios", "Jadlog", "Azul Cargo", "Braspress",
     "TNT", "FedEx", "DHL", "Total Express", "Outro",
 ]
+
+CATEGORIAS_FORNECEDOR = {
+    "1": "Matéria-prima",
+    "2": "Serviços",
+    "3": "Equipamentos",
+    "4": "TI / Tecnologia",
+    "5": "Embalagens",
+    "6": "MRO (Manutenção)",
+    "7": "Transporte / Logística",
+    "8": "Outro",
+}
 
 # ─────────────────────────────────────────────
 #  FUNÇÕES UTILITÁRIAS DE ENTRADA
@@ -244,6 +257,11 @@ def gerar_numero_pedido():
     historico = carregar_historico()
     return f"PC-{len(historico) + 1:04d}"
 
+def gerar_codigo_fornecedor():
+    """Gera código sequencial para fornecedor."""
+    fornecedores = carregar_fornecedores()
+    return f"FOR-{len(fornecedores) + 1:04d}"
+
 # ─────────────────────────────────────────────
 #  HISTÓRICO JSON
 # ─────────────────────────────────────────────
@@ -275,6 +293,921 @@ def _compra_por_pedido(num_pedido: str):
     return historico, None, None
 
 # ─────────────────────────────────────────────
+#  FORNECEDORES — PERSISTÊNCIA
+# ─────────────────────────────────────────────
+
+def carregar_fornecedores():
+    if not FORNECEDORES_JSON.exists():
+        return []
+    with open(FORNECEDORES_JSON, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def salvar_fornecedores(lista: list):
+    with open(FORNECEDORES_JSON, "w", encoding="utf-8") as f:
+        json.dump(lista, f, ensure_ascii=False, indent=2)
+
+def _buscar_fornecedor_por_codigo(codigo: str):
+    fornecedores = carregar_fornecedores()
+    cod = codigo.upper()
+    for i, f in enumerate(fornecedores):
+        if f["codigo"].upper() == cod:
+            return fornecedores, i, f
+    return fornecedores, None, None
+
+# ─────────────────────────────────────────────
+#  FORNECEDORES — CADASTRAR
+# ─────────────────────────────────────────────
+
+def cadastrar_fornecedor(retornar_dados=False):
+    """
+    Cadastra um novo fornecedor.
+    Se retornar_dados=True, retorna o dict do fornecedor criado (usado no fluxo de nova compra).
+    """
+    titulo("CADASTRAR FORNECEDOR")
+
+    codigo = gerar_codigo_fornecedor()
+    print(f"\n  Código gerado: {codigo}")
+    alt = input("  Deseja usar outro código? (ENTER para confirmar ou digite): ").strip()
+    if alt:
+        codigo = alt.upper()
+        # Verificar duplicidade
+        fors = carregar_fornecedores()
+        if any(f["codigo"].upper() == codigo for f in fors):
+            print(f"  ⚠  Código '{codigo}' já existe. Usando código gerado: {gerar_codigo_fornecedor()}")
+            codigo = gerar_codigo_fornecedor()
+
+    print()
+    nome         = input_texto("Nome / Razão social: ")
+    nome_fantasia = input_texto("Nome fantasia (ENTER para pular): ", obrigatorio=False)
+    cnpj_cpf     = input_texto("CNPJ/CPF (ENTER para pular): ", obrigatorio=False)
+    ie           = input_texto("Inscrição Estadual (ENTER para pular): ", obrigatorio=False)
+
+    print("\n  Categoria do fornecedor:")
+    _, categoria = input_menu(CATEGORIAS_FORNECEDOR)
+    if categoria == "Outro":
+        categoria = input_texto("  Descreva a categoria: ")
+
+    print()
+    contato      = input_texto("Nome do contato (ENTER para pular): ", obrigatorio=False)
+    telefone     = input_texto("Telefone / WhatsApp (ENTER para pular): ", obrigatorio=False)
+    email        = input_texto("E-mail (ENTER para pular): ", obrigatorio=False)
+
+    print()
+    endereco     = input_texto("Endereço (ENTER para pular): ", obrigatorio=False)
+    cidade       = input_texto("Cidade (ENTER para pular): ", obrigatorio=False)
+    estado       = input_texto("Estado (UF, ENTER para pular): ", obrigatorio=False)
+
+    print()
+    prazo_medio  = input_texto("Prazo médio de entrega (ex: 5 dias, ENTER para pular): ", obrigatorio=False)
+    cond_pagto   = input_texto("Condição de pagamento preferencial (ENTER para pular): ", obrigatorio=False)
+    obs          = input_texto("Observações (ENTER para pular): ", obrigatorio=False)
+
+    ativo = True
+
+    # ── Resumo ──
+    titulo("RESUMO DO FORNECEDOR")
+    print(f"  Código         : {codigo}")
+    print(f"  Nome           : {nome}")
+    if nome_fantasia: print(f"  Nome Fantasia  : {nome_fantasia}")
+    if cnpj_cpf:      print(f"  CNPJ/CPF       : {cnpj_cpf}")
+    if ie:            print(f"  IE             : {ie}")
+    print(f"  Categoria      : {categoria}")
+    if contato:       print(f"  Contato        : {contato}")
+    if telefone:      print(f"  Telefone       : {telefone}")
+    if email:         print(f"  E-mail         : {email}")
+    if endereco:      print(f"  Endereço       : {endereco}")
+    if cidade:        print(f"  Cidade/UF      : {cidade} {estado}")
+    if prazo_medio:   print(f"  Prazo médio    : {prazo_medio}")
+    if cond_pagto:    print(f"  Cond. pagto    : {cond_pagto}")
+    if obs:           print(f"  Observações    : {obs}")
+    linha()
+
+    if input_sim_nao("\n  Confirmar cadastro? (s/n): ") != "s":
+        print("  ✖  Cadastro cancelado.")
+        if retornar_dados:
+            return None
+        return
+
+    fornecedor = {
+        "codigo":          codigo,
+        "nome":            nome,
+        "nome_fantasia":   nome_fantasia,
+        "cnpj_cpf":        cnpj_cpf,
+        "ie":              ie,
+        "categoria":       categoria,
+        "contato":         contato,
+        "telefone":        telefone,
+        "email":           email,
+        "endereco":        endereco,
+        "cidade":          cidade,
+        "estado":          estado,
+        "prazo_medio":     prazo_medio,
+        "cond_pagto":      cond_pagto,
+        "obs":             obs,
+        "ativo":           ativo,
+        "data_cadastro":   datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "total_compras":   0,
+        "valor_total_brl": 0.0,
+    }
+
+    fors = carregar_fornecedores()
+    fors.append(fornecedor)
+    salvar_fornecedores(fors)
+    print(f"\n  ✔  Fornecedor '{nome}' cadastrado como {codigo}.")
+
+    if retornar_dados:
+        return fornecedor
+    return None
+
+# ─────────────────────────────────────────────
+#  FORNECEDORES — SELECIONAR (usado na nova compra)
+# ─────────────────────────────────────────────
+
+def selecionar_ou_cadastrar_fornecedor():
+    """
+    Fluxo de seleção de fornecedor na nova compra.
+    Retorna (nome, cnpj_cpf) — mantém compatibilidade com o resto do fluxo.
+    Também retorna o código do fornecedor para atualizar estatísticas depois.
+    """
+    fors = carregar_fornecedores()
+    fors_ativos = [f for f in fors if f.get("ativo", True)]
+
+    print("\n  ── Fornecedor ──")
+    print("  [1] Selecionar fornecedor cadastrado")
+    print("  [2] Cadastrar novo fornecedor agora")
+    print("  [3] Digitar manualmente (sem salvar)")
+    op = input("  Opção: ").strip()
+
+    if op == "1":
+        if not fors_ativos:
+            print("  ⚠  Nenhum fornecedor cadastrado. Digite manualmente.")
+            nome     = input_texto("Fornecedor: ")
+            cnpj_cpf = input_texto("CNPJ/CPF (ENTER para pular): ", obrigatorio=False)
+            return nome, cnpj_cpf, None
+
+        # Listar e buscar
+        while True:
+            linha()
+            print(f"  {'CÓD':<10} {'NOME':<35} {'CNPJ/CPF':<20} {'CATEGORIA'}")
+            linha()
+            for f in fors_ativos:
+                print(f"  {f['codigo']:<10} {f['nome'][:34]:<35} "
+                      f"{f.get('cnpj_cpf','—')[:19]:<20} {f.get('categoria','')}")
+            linha()
+            print("  Digite o código, parte do nome, ou ENTER para buscar:")
+            termo = input("  Busca: ").strip().lower()
+
+            if termo == "":
+                # Mostrou lista, pedir código diretamente
+                cod = input_texto("  Código do fornecedor: ").upper()
+                _, _, found = _buscar_fornecedor_por_codigo(cod)
+                if found:
+                    _exibir_ficha_fornecedor(found)
+                    if input_sim_nao("  Usar este fornecedor? (s/n): ") == "s":
+                        return found["nome"], found.get("cnpj_cpf", ""), found["codigo"]
+                else:
+                    print(f"  ⚠  Código '{cod}' não encontrado.")
+            else:
+                # Busca por nome ou código
+                resultados = [
+                    f for f in fors_ativos
+                    if termo in f["nome"].lower()
+                    or termo in f.get("nome_fantasia", "").lower()
+                    or termo in f["codigo"].lower()
+                ]
+                if not resultados:
+                    print(f"  ⚠  Nenhum fornecedor encontrado para '{termo}'.")
+                    if input_sim_nao("  Tentar novamente? (s/n): ") != "s":
+                        break
+                    continue
+                if len(resultados) == 1:
+                    f = resultados[0]
+                    _exibir_ficha_fornecedor(f)
+                    if input_sim_nao("  Usar este fornecedor? (s/n): ") == "s":
+                        return f["nome"], f.get("cnpj_cpf", ""), f["codigo"]
+                else:
+                    linha()
+                    for i, f in enumerate(resultados, 1):
+                        print(f"  [{i}] {f['codigo']:<10} {f['nome']}")
+                    linha()
+                    idx_str = input("  Número da opção (ou ENTER para cancelar): ").strip()
+                    if idx_str == "":
+                        continue
+                    try:
+                        idx_escolha = int(idx_str) - 1
+                        if 0 <= idx_escolha < len(resultados):
+                            f = resultados[idx_escolha]
+                            return f["nome"], f.get("cnpj_cpf", ""), f["codigo"]
+                    except ValueError:
+                        pass
+                    print("  ⚠  Seleção inválida.")
+
+        # Saiu do loop sem selecionar → digitar manualmente
+        nome     = input_texto("Fornecedor: ")
+        cnpj_cpf = input_texto("CNPJ/CPF (ENTER para pular): ", obrigatorio=False)
+        return nome, cnpj_cpf, None
+
+    elif op == "2":
+        fornecedor = cadastrar_fornecedor(retornar_dados=True)
+        if fornecedor:
+            return fornecedor["nome"], fornecedor.get("cnpj_cpf", ""), fornecedor["codigo"]
+        # Se cancelou o cadastro, digitar manualmente
+        nome     = input_texto("Fornecedor: ")
+        cnpj_cpf = input_texto("CNPJ/CPF (ENTER para pular): ", obrigatorio=False)
+        return nome, cnpj_cpf, None
+
+    else:  # op == "3" ou qualquer outra coisa
+        nome     = input_texto("Fornecedor: ")
+        cnpj_cpf = input_texto("CNPJ/CPF (ENTER para pular): ", obrigatorio=False)
+        return nome, cnpj_cpf, None
+
+def _exibir_ficha_fornecedor(f: dict):
+    linha("─", 50)
+    print(f"  Código    : {f['codigo']}")
+    print(f"  Nome      : {f['nome']}")
+    if f.get("nome_fantasia"):  print(f"  Fantasia  : {f['nome_fantasia']}")
+    if f.get("cnpj_cpf"):       print(f"  CNPJ/CPF  : {f['cnpj_cpf']}")
+    print(f"  Categoria : {f.get('categoria','—')}")
+    if f.get("contato"):        print(f"  Contato   : {f['contato']}")
+    if f.get("telefone"):       print(f"  Telefone  : {f['telefone']}")
+    if f.get("email"):          print(f"  E-mail    : {f['email']}")
+    if f.get("cidade"):
+        uf = f" - {f['estado']}" if f.get("estado") else ""
+        print(f"  Cidade    : {f['cidade']}{uf}")
+    if f.get("prazo_medio"):    print(f"  Prazo     : {f['prazo_medio']}")
+    if f.get("cond_pagto"):     print(f"  Pagamento : {f['cond_pagto']}")
+    qtd = f.get("total_compras", 0)
+    val = f.get("valor_total_brl", 0.0)
+    if qtd:
+        print(f"  Histórico : {qtd} compra(s) | R$ {val:.2f} em pedidos")
+    if f.get("obs"):            print(f"  Obs       : {f['obs']}")
+    linha("─", 50)
+
+def _atualizar_estatisticas_fornecedor(codigo: str, valor_brl: float):
+    """Incrementa contadores do fornecedor após salvar compra."""
+    if not codigo:
+        return
+    fors, idx, f = _buscar_fornecedor_por_codigo(codigo)
+    if idx is None:
+        return
+    fors[idx]["total_compras"]   = fors[idx].get("total_compras", 0) + 1
+    fors[idx]["valor_total_brl"] = fors[idx].get("valor_total_brl", 0.0) + valor_brl
+    salvar_fornecedores(fors)
+
+# ─────────────────────────────────────────────
+#  FORNECEDORES — LISTAR / EDITAR / INATIVAR
+# ─────────────────────────────────────────────
+
+def listar_fornecedores(mostrar_inativos=False):
+    fors = carregar_fornecedores()
+    lista = fors if mostrar_inativos else [f for f in fors if f.get("ativo", True)]
+    if not lista:
+        print("\n  Nenhum fornecedor cadastrado.")
+        return
+    linha()
+    print(f"  {'CÓD':<10} {'NOME':<35} {'CNPJ/CPF':<20} {'CATEG.':<20} {'COMPRAS':>7} {'TOTAL R$':>12}")
+    linha()
+    for f in lista:
+        status_str = "" if f.get("ativo", True) else " [inativo]"
+        print(f"  {f['codigo']:<10} {(f['nome'] + status_str)[:34]:<35} "
+              f"{f.get('cnpj_cpf','—')[:19]:<20} "
+              f"{f.get('categoria','')[:19]:<20} "
+              f"{f.get('total_compras',0):>7} "
+              f"R$ {f.get('valor_total_brl',0.0):>10.2f}")
+    linha()
+    print(f"  Total: {len(lista)} fornecedor(es)")
+
+def editar_fornecedor():
+    titulo("EDITAR FORNECEDOR")
+    listar_fornecedores()
+    fors = carregar_fornecedores()
+    if not fors:
+        return
+
+    cod = input_texto("\n  Código do fornecedor a editar: ").upper()
+    fors_all, idx, f = _buscar_fornecedor_por_codigo(cod)
+    if idx is None:
+        print(f"  ⚠  Fornecedor '{cod}' não encontrado.")
+        return
+
+    _exibir_ficha_fornecedor(f)
+    print("\n  O que deseja editar?")
+    print("  [1]  Nome / Razão social")
+    print("  [2]  Nome fantasia")
+    print("  [3]  CNPJ/CPF")
+    print("  [4]  Inscrição Estadual")
+    print("  [5]  Categoria")
+    print("  [6]  Contato")
+    print("  [7]  Telefone")
+    print("  [8]  E-mail")
+    print("  [9]  Endereço / Cidade / Estado")
+    print("  [10] Prazo médio de entrega")
+    print("  [11] Condição de pagamento")
+    print("  [12] Observações")
+    print("  [13] Inativar / Reativar fornecedor")
+    print("  [0]  Cancelar")
+    op = input("  Opção: ").strip()
+
+    campo_map = {
+        "1":  ("nome", "Nome / Razão social: "),
+        "2":  ("nome_fantasia", "Nome fantasia: "),
+        "3":  ("cnpj_cpf", "CNPJ/CPF: "),
+        "4":  ("ie", "Inscrição Estadual: "),
+        "6":  ("contato", "Nome do contato: "),
+        "7":  ("telefone", "Telefone / WhatsApp: "),
+        "8":  ("email", "E-mail: "),
+        "10": ("prazo_medio", "Prazo médio de entrega: "),
+        "11": ("cond_pagto", "Condição de pagamento: "),
+        "12": ("obs", "Observações: "),
+    }
+
+    if op in campo_map:
+        campo, prompt = campo_map[op]
+        obrig = (op == "1")  # só nome é obrigatório
+        novo_valor = input_texto(f"  {prompt}", obrigatorio=obrig)
+        fors_all[idx][campo] = novo_valor
+        salvar_fornecedores(fors_all)
+        print(f"  ✔  Campo atualizado.")
+
+    elif op == "5":
+        print("\n  Categoria:")
+        _, categoria = input_menu(CATEGORIAS_FORNECEDOR)
+        if categoria == "Outro":
+            categoria = input_texto("  Descreva a categoria: ")
+        fors_all[idx]["categoria"] = categoria
+        salvar_fornecedores(fors_all)
+        print(f"  ✔  Categoria atualizada.")
+
+    elif op == "9":
+        fors_all[idx]["endereco"] = input_texto("  Endereço: ", obrigatorio=False)
+        fors_all[idx]["cidade"]   = input_texto("  Cidade: ", obrigatorio=False)
+        fors_all[idx]["estado"]   = input_texto("  Estado (UF): ", obrigatorio=False)
+        salvar_fornecedores(fors_all)
+        print(f"  ✔  Endereço atualizado.")
+
+    elif op == "13":
+        atual = fors_all[idx].get("ativo", True)
+        acao  = "Reativar" if not atual else "Inativar"
+        if input_sim_nao(f"  {acao} fornecedor '{f['nome']}'? (s/n): ") == "s":
+            fors_all[idx]["ativo"] = not atual
+            salvar_fornecedores(fors_all)
+            print(f"  ✔  Fornecedor {'reativado' if not atual else 'inativado'}.")
+
+    elif op != "0":
+        print("  ⚠  Opção inválida.")
+
+def buscar_fornecedor():
+    titulo("BUSCAR FORNECEDOR")
+    termo = input_texto("  Buscar (nome, código, CNPJ): ").lower()
+    fors  = carregar_fornecedores()
+    resultados = [
+        f for f in fors
+        if termo in f["nome"].lower()
+        or termo in f.get("nome_fantasia", "").lower()
+        or termo in f["codigo"].lower()
+        or termo in f.get("cnpj_cpf", "").lower()
+    ]
+    if not resultados:
+        print(f"\n  Nenhum resultado para '{termo}'.")
+        return
+    print(f"\n  {len(resultados)} fornecedor(es) encontrado(s):")
+    for f in resultados:
+        _exibir_ficha_fornecedor(f)
+
+# ─────────────────────────────────────────────
+#  MENU DE FORNECEDORES
+# ─────────────────────────────────────────────
+
+def menu_fornecedores():
+    while True:
+        titulo("GESTÃO DE FORNECEDORES")
+        print("  [1] Listar fornecedores ativos")
+        print("  [2] Cadastrar novo fornecedor")
+        print("  [3] Buscar fornecedor")
+        print("  [4] Editar fornecedor")
+        print("  [5] Listar todos (incluindo inativos)")
+        print("  [0] Voltar")
+        linha()
+        op = input("  Opção: ").strip()
+        if   op == "1": listar_fornecedores()
+        elif op == "2": cadastrar_fornecedor()
+        elif op == "3": buscar_fornecedor()
+        elif op == "4": editar_fornecedor()
+        elif op == "5": listar_fornecedores(mostrar_inativos=True)
+        elif op == "0": break
+        else:           print("  ⚠  Opção inválida.")
+
+# ─────────────────────────────────────────────
+#  CONSTANTES — PRODUTOS
+# ─────────────────────────────────────────────
+
+CATEGORIAS_PRODUTO = {
+    "1": "Matéria-prima",
+    "2": "Produto acabado",
+    "3": "Embalagem",
+    "4": "Peça / Componente",
+    "5": "Material de escritório",
+    "6": "EPI / Segurança",
+    "7": "Ferramenta / Equipamento",
+    "8": "TI / Informática",
+    "9": "Limpeza / Higiene",
+    "10": "Outro",
+}
+
+UNIDADES_MEDIDA = {
+    "1":  "UN  (unidade)",
+    "2":  "CX  (caixa)",
+    "3":  "KG  (quilograma)",
+    "4":  "G   (grama)",
+    "5":  "L   (litro)",
+    "6":  "ML  (mililitro)",
+    "7":  "M   (metro)",
+    "8":  "M²  (metro quadrado)",
+    "9":  "M³  (metro cúbico)",
+    "10": "PC  (peça)",
+    "11": "PT  (pacote)",
+    "12": "SC  (saco)",
+    "13": "RL  (rolo)",
+    "14": "Outro",
+}
+
+# ─────────────────────────────────────────────
+#  PRODUTOS — PERSISTÊNCIA
+# ─────────────────────────────────────────────
+
+def carregar_produtos():
+    if not PRODUTOS_JSON.exists():
+        return []
+    with open(PRODUTOS_JSON, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+def salvar_produtos(lista: list):
+    with open(PRODUTOS_JSON, "w", encoding="utf-8") as f:
+        json.dump(lista, f, ensure_ascii=False, indent=2)
+
+def _buscar_produto_por_codigo(codigo: str):
+    produtos = carregar_produtos()
+    cod = codigo.upper()
+    for i, p in enumerate(produtos):
+        if p["codigo"].upper() == cod:
+            return produtos, i, p
+    return produtos, None, None
+
+def gerar_codigo_produto():
+    produtos = carregar_produtos()
+    return f"PROD-{len(produtos) + 1:04d}"
+
+# ─────────────────────────────────────────────
+#  PRODUTOS — EXIBIR FICHA
+# ─────────────────────────────────────────────
+
+def _exibir_ficha_produto(p: dict):
+    linha("─", 50)
+    print(f"  Código      : {p['codigo']}")
+    print(f"  Nome        : {p['nome']}")
+    if p.get("descricao"):      print(f"  Descrição   : {p['descricao']}")
+    if p.get("marca"):          print(f"  Marca       : {p['marca']}")
+    if p.get("modelo"):         print(f"  Modelo      : {p['modelo']}")
+    print(f"  Categoria   : {p.get('categoria', '—')}")
+    print(f"  Unidade     : {p.get('unidade', '—')}")
+    if p.get("ncm"):            print(f"  NCM         : {p['ncm']}")
+    if p.get("ean"):            print(f"  EAN/GTIN    : {p['ean']}")
+    if p.get("icms_padrao"):    print(f"  ICMS padrão : {p['icms_padrao']}%")
+    if p.get("ipi_padrao"):     print(f"  IPI padrão  : {p['ipi_padrao']}%")
+    if p.get("preco_medio") is not None and p["preco_medio"] > 0:
+        print(f"  Preço médio : R$ {p['preco_medio']:.2f}")
+    if p.get("estoque_minimo") is not None:
+        print(f"  Est. mínimo : {p['estoque_minimo']} {p.get('unidade','').split()[0]}")
+    qtd = p.get("total_compras", 0)
+    val = p.get("valor_total_brl", 0.0)
+    if qtd:
+        print(f"  Histórico   : {qtd} compra(s) | R$ {val:.2f} em pedidos")
+    if p.get("obs"):            print(f"  Obs         : {p['obs']}")
+    status_str = "Ativo" if p.get("ativo", True) else "Inativo"
+    print(f"  Status      : {status_str}")
+    linha("─", 50)
+
+# ─────────────────────────────────────────────
+#  PRODUTOS — CADASTRAR
+# ─────────────────────────────────────────────
+
+def cadastrar_produto(retornar_dados=False):
+    """
+    Cadastra um novo produto.
+    Se retornar_dados=True, retorna o dict do produto (usado no fluxo de nova compra).
+    """
+    titulo("CADASTRAR PRODUTO")
+
+    codigo = gerar_codigo_produto()
+    print(f"\n  Código gerado: {codigo}")
+    alt = input("  Deseja usar outro código? (ENTER para confirmar ou digite): ").strip()
+    if alt:
+        codigo = alt.upper()
+        prods = carregar_produtos()
+        if any(p["codigo"].upper() == codigo for p in prods):
+            print(f"  ⚠  Código '{codigo}' já existe. Usando código gerado.")
+            codigo = gerar_codigo_produto()
+
+    print()
+    nome      = input_texto("Nome do produto: ")
+    descricao = input_texto("Descrição (ENTER para pular): ", obrigatorio=False)
+    marca     = input_texto("Marca (ENTER para pular): ", obrigatorio=False)
+    modelo    = input_texto("Modelo / Referência (ENTER para pular): ", obrigatorio=False)
+
+    print("\n  Categoria:")
+    _, categoria = input_menu(CATEGORIAS_PRODUTO)
+    if categoria == "Outro":
+        categoria = input_texto("  Descreva a categoria: ")
+
+    print("\n  Unidade de medida:")
+    _, unidade_raw = input_menu(UNIDADES_MEDIDA)
+    if unidade_raw == "Outro":
+        unidade = input_texto("  Descreva a unidade: ")
+    else:
+        unidade = unidade_raw.split()[0]  # Pega só a sigla: "UN", "KG" etc.
+
+    print()
+    ncm       = input_texto("NCM (ENTER para pular): ", obrigatorio=False)
+    ean       = input_texto("EAN / GTIN (ENTER para pular): ", obrigatorio=False)
+
+    print()
+    icms_padrao = input_float("ICMS padrão (%) [ENTER = 0]: ")
+    ipi_padrao  = input_float("IPI padrão  (%) [ENTER = 0]: ")
+
+    print()
+    preco_medio    = input_float("Preço médio de compra (R$) [ENTER = 0]: ")
+    estoque_minimo = input_float("Estoque mínimo [ENTER = 0]: ")
+
+    obs = input_texto("Observações (ENTER para pular): ", obrigatorio=False)
+
+    # ── Resumo ──
+    titulo("RESUMO DO PRODUTO")
+    print(f"  Código      : {codigo}")
+    print(f"  Nome        : {nome}")
+    if descricao:    print(f"  Descrição   : {descricao}")
+    if marca:        print(f"  Marca       : {marca}")
+    if modelo:       print(f"  Modelo      : {modelo}")
+    print(f"  Categoria   : {categoria}")
+    print(f"  Unidade     : {unidade}")
+    if ncm:          print(f"  NCM         : {ncm}")
+    if ean:          print(f"  EAN/GTIN    : {ean}")
+    print(f"  ICMS padrão : {icms_padrao}%")
+    print(f"  IPI padrão  : {ipi_padrao}%")
+    if preco_medio:  print(f"  Preço médio : R$ {preco_medio:.2f}")
+    if estoque_minimo: print(f"  Est. mínimo : {estoque_minimo} {unidade}")
+    if obs:          print(f"  Observações : {obs}")
+    linha()
+
+    if input_sim_nao("\n  Confirmar cadastro? (s/n): ") != "s":
+        print("  ✖  Cadastro cancelado.")
+        if retornar_dados:
+            return None
+        return
+
+    produto = {
+        "codigo":          codigo,
+        "nome":            nome,
+        "descricao":       descricao,
+        "marca":           marca,
+        "modelo":          modelo,
+        "categoria":       categoria,
+        "unidade":         unidade,
+        "ncm":             ncm,
+        "ean":             ean,
+        "icms_padrao":     icms_padrao,
+        "ipi_padrao":      ipi_padrao,
+        "preco_medio":     preco_medio,
+        "estoque_minimo":  estoque_minimo,
+        "obs":             obs,
+        "ativo":           True,
+        "data_cadastro":   datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        "total_compras":   0,
+        "valor_total_brl": 0.0,
+    }
+
+    prods = carregar_produtos()
+    prods.append(produto)
+    salvar_produtos(prods)
+    print(f"\n  ✔  Produto '{nome}' cadastrado como {codigo}.")
+
+    if retornar_dados:
+        return produto
+    return None
+
+# ─────────────────────────────────────────────
+#  PRODUTOS — SELECIONAR (usado na nova compra)
+# ─────────────────────────────────────────────
+
+def selecionar_ou_cadastrar_produto(simbolo_moeda="R$"):
+    """
+    Fluxo de seleção de produto na nova compra.
+    Retorna dict com os dados do item preenchido (codigo, nome, unidade,
+    icms_padrao, ipi_padrao já pré-carregados) ou None para digitação manual.
+    """
+    prods = carregar_produtos()
+    prods_ativos = [p for p in prods if p.get("ativo", True)]
+
+    print("\n  ── Item da compra ──")
+    print("  [1] Selecionar produto cadastrado")
+    print("  [2] Cadastrar novo produto agora")
+    print("  [3] Digitar manualmente (sem salvar)")
+    op = input("  Opção: ").strip()
+
+    produto_base = None
+
+    if op == "1":
+        if not prods_ativos:
+            print("  ⚠  Nenhum produto cadastrado. Preencha manualmente.")
+        else:
+            while True:
+                linha()
+                print(f"  {'CÓD':<12} {'NOME':<35} {'UNID':<6} {'CATEG.':<22} {'PREÇO MÉDIO':>12}")
+                linha()
+                for p in prods_ativos:
+                    pm = f"R$ {p['preco_medio']:.2f}" if p.get("preco_medio") else "—"
+                    print(f"  {p['codigo']:<12} {p['nome'][:34]:<35} "
+                          f"{p.get('unidade',''):<6} "
+                          f"{p.get('categoria','')[:21]:<22} {pm:>12}")
+                linha()
+                print("  Digite o código, parte do nome, ou ENTER para listar:")
+                termo = input("  Busca: ").strip().lower()
+
+                if termo == "":
+                    cod = input_texto("  Código do produto: ").upper()
+                    _, _, found = _buscar_produto_por_codigo(cod)
+                    if found:
+                        _exibir_ficha_produto(found)
+                        if input_sim_nao("  Usar este produto? (s/n): ") == "s":
+                            produto_base = found
+                            break
+                    else:
+                        print(f"  ⚠  Código '{cod}' não encontrado.")
+                else:
+                    resultados = [
+                        p for p in prods_ativos
+                        if termo in p["nome"].lower()
+                        or termo in p.get("descricao", "").lower()
+                        or termo in p["codigo"].lower()
+                        or termo in p.get("marca", "").lower()
+                    ]
+                    if not resultados:
+                        print(f"  ⚠  Nenhum produto encontrado para '{termo}'.")
+                        if input_sim_nao("  Tentar novamente? (s/n): ") != "s":
+                            break
+                        continue
+                    if len(resultados) == 1:
+                        _exibir_ficha_produto(resultados[0])
+                        if input_sim_nao("  Usar este produto? (s/n): ") == "s":
+                            produto_base = resultados[0]
+                            break
+                    else:
+                        linha()
+                        for i, p in enumerate(resultados, 1):
+                            pm = f"R$ {p['preco_medio']:.2f}" if p.get("preco_medio") else "—"
+                            print(f"  [{i}] {p['codigo']:<12} {p['nome']:<35} {pm}")
+                        linha()
+                        idx_str = input("  Número da opção (ou ENTER para cancelar): ").strip()
+                        if idx_str == "":
+                            continue
+                        try:
+                            idx_e = int(idx_str) - 1
+                            if 0 <= idx_e < len(resultados):
+                                produto_base = resultados[idx_e]
+                                break
+                        except ValueError:
+                            pass
+                        print("  ⚠  Seleção inválida.")
+
+                if produto_base:
+                    break
+
+    elif op == "2":
+        produto_base = cadastrar_produto(retornar_dados=True)
+
+    # ── Preenche os campos do item, pré-populando com dados do cadastro ──
+    if produto_base:
+        print(f"\n  ✔  Produto: {produto_base['nome']} [{produto_base['codigo']}]")
+        codigo = produto_base["codigo"]
+        nome   = produto_base["nome"]
+        # Valor unitário: sugere preço médio se existir
+        pm = produto_base.get("preco_medio", 0.0)
+        if pm and pm > 0:
+            entrada = input(f"  Valor unitário ({simbolo_moeda}) [sugerido: {pm:.2f}] (ENTER para confirmar): ").strip().replace(",", ".")
+            valor_unit = float(entrada) if entrada else pm
+        else:
+            valor_unit = input_float(f"  Valor unitário ({simbolo_moeda}): ", permite_zero=False)
+        quantidade = input_int("  Quantidade: ")
+        obs_prod   = input_texto("  Observação do item (ENTER para pular): ", obrigatorio=False)
+        # ICMS e IPI pré-populados
+        icms_padrao = produto_base.get("icms_padrao", 0.0)
+        ipi_padrao  = produto_base.get("ipi_padrao",  0.0)
+        entrada_icms = input(f"  ICMS (%) [padrão: {icms_padrao}] (ENTER para confirmar): ").strip().replace(",", ".")
+        icms_perc = float(entrada_icms) if entrada_icms else icms_padrao
+        entrada_ipi = input(f"  IPI  (%) [padrão: {ipi_padrao}] (ENTER para confirmar): ").strip().replace(",", ".")
+        ipi_perc  = float(entrada_ipi) if entrada_ipi else ipi_padrao
+        return {
+            "codigo_produto": produto_base["codigo"],
+            "codigo":         codigo,
+            "nome":           nome,
+            "valor_unit":     valor_unit,
+            "quantidade":     quantidade,
+            "obs":            obs_prod,
+            "icms_perc":      icms_perc,
+            "ipi_perc":       ipi_perc,
+        }
+
+    # Digitação manual (op==3 ou não encontrou produto)
+    codigo     = input_texto("  Código do produto: ")
+    nome       = input_texto("  Nome do produto: ")
+    valor_unit = input_float(f"  Valor unitário ({simbolo_moeda}): ", permite_zero=False)
+    quantidade = input_int("  Quantidade: ")
+    obs_prod   = input_texto("  Observação do item (ENTER para pular): ", obrigatorio=False)
+    icms_perc  = input_float("  ICMS (%): ")
+    ipi_perc   = input_float("  IPI  (%): ")
+    return {
+        "codigo_produto": "",
+        "codigo":         codigo,
+        "nome":           nome,
+        "valor_unit":     valor_unit,
+        "quantidade":     quantidade,
+        "obs":            obs_prod,
+        "icms_perc":      icms_perc,
+        "ipi_perc":       ipi_perc,
+    }
+
+def _atualizar_estatisticas_produto(codigo: str, valor_brl: float):
+    """Atualiza preço médio e contadores do produto após compra salva."""
+    if not codigo:
+        return
+    prods, idx, p = _buscar_produto_por_codigo(codigo)
+    if idx is None:
+        return
+    qtd_ant = prods[idx].get("total_compras", 0)
+    preco_ant = prods[idx].get("preco_medio", 0.0)
+    # Média ponderada simples do valor unitário (usando valor_brl como referência)
+    prods[idx]["total_compras"]   = qtd_ant + 1
+    prods[idx]["valor_total_brl"] = prods[idx].get("valor_total_brl", 0.0) + valor_brl
+    salvar_produtos(prods)
+
+# ─────────────────────────────────────────────
+#  PRODUTOS — LISTAR / BUSCAR / EDITAR
+# ─────────────────────────────────────────────
+
+def listar_produtos(mostrar_inativos=False):
+    prods = carregar_produtos()
+    lista = prods if mostrar_inativos else [p for p in prods if p.get("ativo", True)]
+    if not lista:
+        print("\n  Nenhum produto cadastrado.")
+        return
+    linha()
+    print(f"  {'CÓD':<12} {'NOME':<35} {'UNID':<6} {'CATEG.':<22} {'PREÇO MÉD.':>11} {'COMPRAS':>7}")
+    linha()
+    for p in lista:
+        status_str = "" if p.get("ativo", True) else " [inativo]"
+        pm = f"R$ {p['preco_medio']:.2f}" if p.get("preco_medio") else "—"
+        print(f"  {p['codigo']:<12} {(p['nome'] + status_str)[:34]:<35} "
+              f"{p.get('unidade',''):<6} "
+              f"{p.get('categoria','')[:21]:<22} "
+              f"{pm:>11} "
+              f"{p.get('total_compras',0):>7}")
+    linha()
+    print(f"  Total: {len(lista)} produto(s)")
+
+def buscar_produto():
+    titulo("BUSCAR PRODUTO")
+    termo = input_texto("  Buscar (nome, código, marca, NCM): ").lower()
+    prods = carregar_produtos()
+    resultados = [
+        p for p in prods
+        if termo in p["nome"].lower()
+        or termo in p.get("descricao", "").lower()
+        or termo in p["codigo"].lower()
+        or termo in p.get("marca", "").lower()
+        or termo in p.get("ncm", "").lower()
+        or termo in p.get("ean", "").lower()
+    ]
+    if not resultados:
+        print(f"\n  Nenhum resultado para '{termo}'.")
+        return
+    print(f"\n  {len(resultados)} produto(s) encontrado(s):")
+    for p in resultados:
+        _exibir_ficha_produto(p)
+
+def editar_produto():
+    titulo("EDITAR PRODUTO")
+    listar_produtos()
+    prods = carregar_produtos()
+    if not prods:
+        return
+
+    cod = input_texto("\n  Código do produto a editar: ").upper()
+    prods_all, idx, p = _buscar_produto_por_codigo(cod)
+    if idx is None:
+        print(f"  ⚠  Produto '{cod}' não encontrado.")
+        return
+
+    _exibir_ficha_produto(p)
+    print("\n  O que deseja editar?")
+    print("  [1]  Nome")
+    print("  [2]  Descrição")
+    print("  [3]  Marca")
+    print("  [4]  Modelo / Referência")
+    print("  [5]  Categoria")
+    print("  [6]  Unidade de medida")
+    print("  [7]  NCM")
+    print("  [8]  EAN / GTIN")
+    print("  [9]  ICMS padrão (%)")
+    print("  [10] IPI padrão (%)")
+    print("  [11] Preço médio de compra")
+    print("  [12] Estoque mínimo")
+    print("  [13] Observações")
+    print("  [14] Inativar / Reativar produto")
+    print("  [0]  Cancelar")
+    op = input("  Opção: ").strip()
+
+    campo_texto = {
+        "1":  ("nome",      "Nome: ",            True),
+        "2":  ("descricao", "Descrição: ",        False),
+        "3":  ("marca",     "Marca: ",            False),
+        "4":  ("modelo",    "Modelo / Ref.: ",    False),
+        "7":  ("ncm",       "NCM: ",              False),
+        "8":  ("ean",       "EAN / GTIN: ",       False),
+        "13": ("obs",       "Observações: ",      False),
+    }
+    campo_float = {
+        "9":  ("icms_padrao",    "ICMS padrão (%): "),
+        "10": ("ipi_padrao",     "IPI padrão  (%): "),
+        "11": ("preco_medio",    "Preço médio (R$): "),
+        "12": ("estoque_minimo", "Estoque mínimo: "),
+    }
+
+    if op in campo_texto:
+        campo, prompt, obrig = campo_texto[op]
+        prods_all[idx][campo] = input_texto(f"  {prompt}", obrigatorio=obrig)
+        salvar_produtos(prods_all)
+        print("  ✔  Campo atualizado.")
+
+    elif op in campo_float:
+        campo, prompt = campo_float[op]
+        prods_all[idx][campo] = input_float(f"  {prompt}")
+        salvar_produtos(prods_all)
+        print("  ✔  Campo atualizado.")
+
+    elif op == "5":
+        print("\n  Categoria:")
+        _, categoria = input_menu(CATEGORIAS_PRODUTO)
+        if categoria == "Outro":
+            categoria = input_texto("  Descreva a categoria: ")
+        prods_all[idx]["categoria"] = categoria
+        salvar_produtos(prods_all)
+        print("  ✔  Categoria atualizada.")
+
+    elif op == "6":
+        print("\n  Unidade de medida:")
+        _, unidade_raw = input_menu(UNIDADES_MEDIDA)
+        if unidade_raw == "Outro":
+            unidade = input_texto("  Descreva a unidade: ")
+        else:
+            unidade = unidade_raw.split()[0]
+        prods_all[idx]["unidade"] = unidade
+        salvar_produtos(prods_all)
+        print("  ✔  Unidade atualizada.")
+
+    elif op == "14":
+        atual = prods_all[idx].get("ativo", True)
+        acao  = "Reativar" if not atual else "Inativar"
+        if input_sim_nao(f"  {acao} produto '{p['nome']}'? (s/n): ") == "s":
+            prods_all[idx]["ativo"] = not atual
+            salvar_produtos(prods_all)
+            print(f"  ✔  Produto {'reativado' if not atual else 'inativado'}.")
+
+    elif op != "0":
+        print("  ⚠  Opção inválida.")
+
+# ─────────────────────────────────────────────
+#  MENU DE PRODUTOS
+# ─────────────────────────────────────────────
+
+def menu_produtos():
+    while True:
+        titulo("GESTÃO DE PRODUTOS")
+        print("  [1] Listar produtos ativos")
+        print("  [2] Cadastrar novo produto")
+        print("  [3] Buscar produto")
+        print("  [4] Editar produto")
+        print("  [5] Listar todos (incluindo inativos)")
+        print("  [0] Voltar")
+        linha()
+        op = input("  Opção: ").strip()
+        if   op == "1": listar_produtos()
+        elif op == "2": cadastrar_produto()
+        elif op == "3": buscar_produto()
+        elif op == "4": editar_produto()
+        elif op == "5": listar_produtos(mostrar_inativos=True)
+        elif op == "0": break
+        else:           print("  ⚠  Opção inválida.")
+
+# ─────────────────────────────────────────────
 #  NOVA COMPRA
 # ─────────────────────────────────────────────
 
@@ -289,11 +1222,10 @@ def nova_compra():
     if alt:
         num_pedido = alt
 
-    # Fornecedor
-    print()
-    fornecedor   = input_texto("Fornecedor: ")
-    cnpj_cpf     = input_texto("CNPJ/CPF do fornecedor (ENTER para pular): ", obrigatorio=False)
-    nota_fiscal  = input_texto("Nº Nota Fiscal (ENTER para pular): ", obrigatorio=False)
+    # ── Fornecedor (novo fluxo com cadastro) ──
+    fornecedor, cnpj_cpf, cod_fornecedor = selecionar_ou_cadastrar_fornecedor()
+
+    nota_fiscal = input_texto("\nNº Nota Fiscal (ENTER para pular): ", obrigatorio=False)
 
     # Datas
     print()
@@ -321,9 +1253,8 @@ def nova_compra():
         cotacao = input_float(f"  Cotação do {sigla_moeda} em R$: ", permite_zero=False)
         print(f"  ✔  1 {sigla_moeda} = R$ {cotacao:.4f}")
 
-    # Status
-    print("\n  Status da compra:")
-    cod_status, status = input_menu(STATUS_OPCOES)
+    # Status nasce sempre como Pendente
+    status = "Pendente"
 
     # Frete
     frete = input_float(f"\nFrete ({simbolo_moeda}): ")
@@ -334,40 +1265,43 @@ def nova_compra():
 
     # ── Produtos ──
     produtos = []
+    codigos_produto_cadastrado = []  # para atualizar estatísticas depois
     total_produtos = 0.0
 
     while True:
         titulo("ADICIONANDO PRODUTO")
-        codigo     = input_texto("Código do produto: ")
-        nome       = input_texto("Nome do produto: ")
-        valor_unit = input_float(f"Valor unitário ({simbolo_moeda}): ", permite_zero=False)
-        quantidade = input_int("Quantidade: ")
-        obs_prod   = input_texto("Observação do item (ENTER para pular): ", obrigatorio=False)
+        item = selecionar_ou_cadastrar_produto(simbolo_moeda)
 
-        icms_perc  = input_float("ICMS (%): ")
-        icms_valor = (valor_unit * quantidade) * (icms_perc / 100)
+        codigo     = item["codigo"]
+        nome       = item["nome"]
+        valor_unit = item["valor_unit"]
+        quantidade = item["quantidade"]
+        obs_prod   = item["obs"]
+        icms_perc  = item["icms_perc"]
+        ipi_perc   = item["ipi_perc"]
 
-        ipi_perc   = input_float("IPI (%): ")
-        ipi_valor  = (valor_unit * quantidade) * (ipi_perc / 100)
-
-        desconto   = input_desconto(valor_unit * quantidade)
-        subtotal   = (valor_unit * quantidade) + icms_valor + ipi_valor - desconto
+        icms_valor   = (valor_unit * quantidade) * (icms_perc / 100)
+        ipi_valor    = (valor_unit * quantidade) * (ipi_perc / 100)
+        desconto     = input_desconto(valor_unit * quantidade)
+        subtotal     = (valor_unit * quantidade) + icms_valor + ipi_valor - desconto
         subtotal_brl = subtotal * cotacao
 
         produtos.append({
-            "codigo":      codigo,
-            "nome":        nome,
-            "valor_unit":  valor_unit,
-            "quantidade":  quantidade,
-            "icms_perc":   icms_perc,
-            "icms_valor":  icms_valor,
-            "ipi_perc":    ipi_perc,
-            "ipi_valor":   ipi_valor,
-            "desconto":    desconto,
-            "subtotal":    subtotal,
-            "subtotal_brl": subtotal_brl,
-            "obs":         obs_prod,
+            "codigo_produto": item.get("codigo_produto", ""),
+            "codigo":         codigo,
+            "nome":           nome,
+            "valor_unit":     valor_unit,
+            "quantidade":     quantidade,
+            "icms_perc":      icms_perc,
+            "icms_valor":     icms_valor,
+            "ipi_perc":       ipi_perc,
+            "ipi_valor":      ipi_valor,
+            "desconto":       desconto,
+            "subtotal":       subtotal,
+            "subtotal_brl":   subtotal_brl,
+            "obs":            obs_prod,
         })
+        codigos_produto_cadastrado.append(item.get("codigo_produto", ""))
         total_produtos += subtotal
 
         print(f"\n  ✔  Subtotal do item: {simbolo_moeda} {subtotal:.2f}", end="")
@@ -378,6 +1312,7 @@ def nova_compra():
         if input_sim_nao("  Deseja editar este item? (s/n): ") == "s":
             total_produtos -= subtotal
             produtos.pop()
+            codigos_produto_cadastrado.pop()
             print("  ↩  Refaça o preenchimento do item:")
             continue
 
@@ -396,7 +1331,9 @@ def nova_compra():
     # ── Resumo e confirmação ──
     titulo("RESUMO FINAL — CONFIRME OS DADOS")
     print(f"  Pedido           : {num_pedido}")
-    print(f"  Fornecedor       : {fornecedor}")
+    print(f"  Fornecedor       : {fornecedor}", end="")
+    if cod_fornecedor: print(f"  [{cod_fornecedor}]", end="")
+    print()
     if cnpj_cpf:    print(f"  CNPJ/CPF         : {cnpj_cpf}")
     if nota_fiscal: print(f"  Nota Fiscal      : {nota_fiscal}")
     print(f"  Data compra      : {data_compra_str}")
@@ -407,7 +1344,6 @@ def nova_compra():
         print(f"  {parcelas}x  →  Venc.: {', '.join(vencimentos)}", end="")
     print()
     print(f"  Centro de custo  : {centro_custo}")
-    print(f"  Status           : {status}")
     print(f"  Moeda            : {sigla_moeda}", end="")
     if sigla_moeda != "BRL":
         print(f"  (cotação R$ {cotacao:.4f})", end="")
@@ -439,6 +1375,7 @@ def nova_compra():
     compra = {
         "num_pedido":        num_pedido,
         "fornecedor":        fornecedor,
+        "cod_fornecedor":    cod_fornecedor or "",
         "cnpj_cpf":          cnpj_cpf,
         "nota_fiscal":       nota_fiscal,
         "data_compra":       data_compra_str,
@@ -470,7 +1407,19 @@ def nova_compra():
     salvar_csv_individual(compra, simbolo_moeda)
     atualizar_csv_geral(compra, simbolo_moeda)
 
+    # Atualiza estatísticas do fornecedor cadastrado
+    if cod_fornecedor:
+        _atualizar_estatisticas_fornecedor(cod_fornecedor, total_final_brl)
+
+    # Atualiza estatísticas dos produtos cadastrados
+    for cod_prod, prod in zip(codigos_produto_cadastrado, produtos):
+        if cod_prod:
+            _atualizar_estatisticas_produto(cod_prod, prod["subtotal_brl"])
+
     print(f"\n  ✔  Compra {num_pedido} registrada com sucesso!")
+
+    if input_sim_nao("  Deseja gerar o PDF desta compra agora? (s/n): ") == "s":
+        imprimir_ou_gerar_pdf(compra, simbolo_moeda)
 
 # ─────────────────────────────────────────────
 #  SALVAR TXT
@@ -487,6 +1436,7 @@ def salvar_txt(c, sim):
         f.write(f"Status            : {c['status']}\n")
         f.write("-" * 50 + "\n")
         f.write(f"Fornecedor        : {c['fornecedor']}\n")
+        if c.get('cod_fornecedor'): f.write(f"Cód. Fornecedor   : {c['cod_fornecedor']}\n")
         if c['cnpj_cpf']:    f.write(f"CNPJ/CPF          : {c['cnpj_cpf']}\n")
         if c['nota_fiscal']: f.write(f"Nota Fiscal       : {c['nota_fiscal']}\n")
         f.write(f"Data compra       : {c['data_compra']}\n")
@@ -524,6 +1474,271 @@ def salvar_txt(c, sim):
     print(f"  📄 TXT: {nome}")
 
 # ─────────────────────────────────────────────
+#  GERAR PDF
+# ─────────────────────────────────────────────
+
+def gerar_pdf(c, sim, caminho_destino=None):
+    """
+    Gera PDF formatado do pedido de compra.
+    Retorna o Path do arquivo gerado, ou None em caso de erro.
+    """
+    try:
+        from reportlab.lib.pagesizes import A4
+        from reportlab.lib import colors
+        from reportlab.lib.units import mm
+        from reportlab.platypus import (
+            SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, HRFlowable
+        )
+        from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+        from reportlab.lib.enums import TA_CENTER, TA_RIGHT, TA_LEFT
+    except ImportError:
+        print("  ⚠  reportlab não instalado. Execute: pip install reportlab")
+        return None
+
+    DIR_PDF = DIR_BASE / "pdf"
+    DIR_PDF.mkdir(parents=True, exist_ok=True)
+
+    if caminho_destino is None:
+        caminho_destino = DIR_PDF / f"{c['num_pedido']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+
+    doc = SimpleDocTemplate(
+        str(caminho_destino),
+        pagesize=A4,
+        rightMargin=15 * mm,
+        leftMargin=15 * mm,
+        topMargin=15 * mm,
+        bottomMargin=15 * mm,
+    )
+
+    W = A4[0] - 30 * mm  # largura útil
+    estilos = getSampleStyleSheet()
+
+    # ── Estilos customizados ──
+    titulo_doc = ParagraphStyle(
+        "titulo_doc", parent=estilos["Heading1"],
+        fontSize=16, textColor=colors.HexColor("#1a1a2e"),
+        spaceAfter=2, alignment=TA_CENTER,
+    )
+    subtitulo_doc = ParagraphStyle(
+        "subtitulo_doc", parent=estilos["Normal"],
+        fontSize=9, textColor=colors.HexColor("#555555"),
+        spaceAfter=8, alignment=TA_CENTER,
+    )
+    secao = ParagraphStyle(
+        "secao", parent=estilos["Heading2"],
+        fontSize=9, textColor=colors.white,
+        spaceAfter=0, spaceBefore=10,
+        backColor=colors.HexColor("#1a1a2e"),
+        leftIndent=4, rightIndent=4,
+    )
+    label = ParagraphStyle(
+        "label", parent=estilos["Normal"],
+        fontSize=8, textColor=colors.HexColor("#555555"),
+    )
+    valor = ParagraphStyle(
+        "valor", parent=estilos["Normal"],
+        fontSize=9, textColor=colors.HexColor("#1a1a2e"),
+    )
+    valor_neg = ParagraphStyle(
+        "valor_neg", parent=estilos["Normal"],
+        fontSize=9, textColor=colors.HexColor("#c0392b"),
+    )
+    rodape_est = ParagraphStyle(
+        "rodape_est", parent=estilos["Normal"],
+        fontSize=7, textColor=colors.HexColor("#888888"),
+        alignment=TA_CENTER,
+    )
+
+    def campo(lb, vl, estilo_val=None):
+        return [Paragraph(lb, label), Paragraph(str(vl) if vl else "—", estilo_val or valor)]
+
+    story = []
+
+    # ── Cabeçalho ──
+    story.append(Paragraph("PEDIDO DE COMPRA", titulo_doc))
+    story.append(Paragraph(
+        f"Nº {c['num_pedido']}  |  Emitido em: {c['data_registro']}  |  Status: {c['status']}",
+        subtitulo_doc,
+    ))
+    story.append(HRFlowable(width="100%", thickness=2, color=colors.HexColor("#1a1a2e"), spaceAfter=6))
+
+    # ── Seção: Fornecedor ──
+    story.append(Paragraph("  FORNECEDOR", secao))
+    story.append(Spacer(1, 3))
+    dados_forn = [
+        [Paragraph("Fornecedor", label),   Paragraph(c["fornecedor"], valor),
+         Paragraph("Cód.", label),          Paragraph(c.get("cod_fornecedor") or "—", valor)],
+        [Paragraph("CNPJ/CPF", label),      Paragraph(c.get("cnpj_cpf") or "—", valor),
+         Paragraph("Nota Fiscal", label),   Paragraph(c.get("nota_fiscal") or "—", valor)],
+    ]
+    t_forn = Table(dados_forn, colWidths=[28*mm, W*0.38, 20*mm, W*0.28])
+    t_forn.setStyle(TableStyle([
+        ("VALIGN",    (0, 0), (-1, -1), "TOP"),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#f7f7f7"), colors.white]),
+        ("GRID",      (0, 0), (-1, -1), 0.3, colors.HexColor("#dddddd")),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING",   (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 3),
+    ]))
+    story.append(t_forn)
+
+    # ── Seção: Datas e Condições ──
+    story.append(Paragraph("  DATAS E CONDIÇÕES", secao))
+    story.append(Spacer(1, 3))
+
+    parcelas_str = (
+        f"{c['parcelas']}x  →  {', '.join(c['vencimentos'])}"
+        if c.get("parcelas", 1) > 1 else "À vista"
+    )
+    moeda_str = c["moeda"]
+    if c["moeda"] != "BRL":
+        moeda_str += f"  (cotação R$ {c.get('cotacao_brl', 1):.4f})"
+
+    dados_cond = [
+        [Paragraph("Data da compra", label),    Paragraph(c["data_compra"], valor),
+         Paragraph("Data faturamento", label),  Paragraph(c["data_faturamento"], valor)],
+        [Paragraph("Prazo de entrega", label),  Paragraph(c["prazo_entrega"], valor),
+         Paragraph("Previsão entrega", label),  Paragraph(c["data_entrega_prev"], valor)],
+        [Paragraph("Pagamento", label),         Paragraph(c["pagamento"], valor),
+         Paragraph("Parcelas", label),          Paragraph(parcelas_str, valor)],
+        [Paragraph("Centro de custo", label),   Paragraph(c["centro_custo"], valor),
+         Paragraph("Moeda", label),             Paragraph(moeda_str, valor)],
+    ]
+    if c.get("data_recebimento"):
+        dados_cond.append([
+            Paragraph("Data recebimento", label), Paragraph(c["data_recebimento"], valor),
+            Paragraph("", label), Paragraph("", valor),
+        ])
+    if c.get("obs_geral"):
+        dados_cond.append([
+            Paragraph("Observações", label),
+            Paragraph(c["obs_geral"], valor),
+            Paragraph("", label), Paragraph("", valor),
+        ])
+
+    col_w = [36*mm, W*0.32, 36*mm, W*0.28]
+    t_cond = Table(dados_cond, colWidths=col_w)
+    t_cond.setStyle(TableStyle([
+        ("VALIGN",    (0, 0), (-1, -1), "TOP"),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -1), [colors.HexColor("#f7f7f7"), colors.white]),
+        ("GRID",      (0, 0), (-1, -1), 0.3, colors.HexColor("#dddddd")),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING",   (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 3),
+        ("SPAN", (1, -1), (3, -1)) if c.get("obs_geral") else ("VALIGN", (0,0),(0,0),"TOP"),
+    ]))
+    story.append(t_cond)
+
+    # ── Seção: Itens ──
+    story.append(Paragraph("  ITENS DO PEDIDO", secao))
+    story.append(Spacer(1, 3))
+
+    cab_itens = [
+        Paragraph("Código", label),
+        Paragraph("Produto", label),
+        Paragraph("Qtd", label),
+        Paragraph(f"Unit. ({sim})", label),
+        Paragraph("ICMS%", label),
+        Paragraph("IPI%", label),
+        Paragraph(f"Desc. ({sim})", label),
+        Paragraph(f"Subtotal ({sim})", label),
+    ]
+    linhas_itens = [cab_itens]
+    for p in c["produtos"]:
+        linhas_itens.append([
+            Paragraph(p["codigo"], valor),
+            Paragraph(p["nome"], valor),
+            Paragraph(str(p["quantidade"]), valor),
+            Paragraph(f"{p['valor_unit']:.2f}", valor),
+            Paragraph(f"{p['icms_perc']:.1f}%", valor),
+            Paragraph(f"{p['ipi_perc']:.1f}%", valor),
+            Paragraph(f"{p['desconto']:.2f}", valor),
+            Paragraph(f"{p['subtotal']:.2f}", valor),
+        ])
+
+    cw_itens = [22*mm, W*0.30, 12*mm, 20*mm, 14*mm, 12*mm, 20*mm, 22*mm]
+    t_itens = Table(linhas_itens, colWidths=cw_itens, repeatRows=1)
+    t_itens.setStyle(TableStyle([
+        ("BACKGROUND",  (0, 0), (-1, 0), colors.HexColor("#e8e8f0")),
+        ("TEXTCOLOR",   (0, 0), (-1, 0), colors.HexColor("#1a1a2e")),
+        ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, colors.HexColor("#f7f7f7")]),
+        ("GRID",        (0, 0), (-1, -1), 0.3, colors.HexColor("#dddddd")),
+        ("ALIGN",       (2, 0), (-1, -1), "RIGHT"),
+        ("VALIGN",      (0, 0), (-1, -1), "TOP"),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+        ("TOPPADDING",   (0, 0), (-1, -1), 3),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 3),
+    ]))
+    story.append(t_itens)
+
+    # ── Seção: Totais ──
+    story.append(Spacer(1, 4))
+    linhas_tot = [
+        ["Subtotal dos produtos", f"{sim} {c['total_produtos']:.2f}"],
+        ["Desconto geral",        f"- {sim} {c['desc_geral']:.2f}"],
+        ["Frete",                 f"{sim} {c['frete']:.2f}"],
+    ]
+    if c["moeda"] != "BRL":
+        linhas_tot.append(["TOTAL FINAL",  f"{sim} {c['total_final']:.2f}  =  R$ {c['total_final_brl']:.2f}"])
+    else:
+        linhas_tot.append(["TOTAL FINAL",  f"R$ {c['total_final']:.2f}"])
+
+    est_tot = [
+        ParagraphStyle("tl", parent=estilos["Normal"], fontSize=8,
+                       textColor=colors.HexColor("#555555"), alignment=TA_RIGHT),
+        ParagraphStyle("tv", parent=estilos["Normal"], fontSize=8,
+                       textColor=colors.HexColor("#1a1a2e"), alignment=TA_RIGHT),
+    ]
+    est_tf_l = ParagraphStyle("tfl", parent=estilos["Normal"], fontSize=10,
+                               textColor=colors.white, alignment=TA_RIGHT, fontName="Helvetica-Bold")
+    est_tf_v = ParagraphStyle("tfv", parent=estilos["Normal"], fontSize=10,
+                               textColor=colors.white, alignment=TA_RIGHT, fontName="Helvetica-Bold")
+
+    rows_tot = []
+    for i, (lb, vl) in enumerate(linhas_tot[:-1]):
+        rows_tot.append([Paragraph(lb, est_tot[0]), Paragraph(vl, est_tot[1])])
+    rows_tot.append([Paragraph(linhas_tot[-1][0], est_tf_l), Paragraph(linhas_tot[-1][1], est_tf_v)])
+
+    t_tot = Table(rows_tot, colWidths=[W - 60*mm, 60*mm], hAlign="RIGHT")
+    t_tot.setStyle(TableStyle([
+        ("VALIGN",       (0, 0), (-1, -1), "MIDDLE"),
+        ("ROWBACKGROUNDS", (0, 0), (-1, -2), [colors.HexColor("#f0f0f8"), colors.white]),
+        ("BACKGROUND",   (0, -1), (-1, -1), colors.HexColor("#1a1a2e")),
+        ("GRID",         (0, 0), (-1, -1), 0.3, colors.HexColor("#cccccc")),
+        ("LINEABOVE",    (0, -1), (-1, -1), 1.5, colors.HexColor("#1a1a2e")),
+        ("LEFTPADDING",  (0, 0), (-1, -1), 8),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 8),
+        ("TOPPADDING",   (0, 0), (-1, -1), 4),
+        ("BOTTOMPADDING",(0, 0), (-1, -1), 4),
+    ]))
+    story.append(t_tot)
+
+    # ── Rodapé ──
+    story.append(Spacer(1, 8))
+    story.append(HRFlowable(width="100%", thickness=0.5, color=colors.HexColor("#cccccc"), spaceAfter=4))
+    story.append(Paragraph(
+        f"Documento gerado automaticamente em {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}  |  "
+        f"Pedido {c['num_pedido']}",
+        rodape_est,
+    ))
+
+    doc.build(story)
+    return caminho_destino
+
+
+def imprimir_ou_gerar_pdf(compra, simbolo_moeda="R$"):
+    """Menu pós-geração: gera PDF e oferece opção de abrir."""
+    caminho = gerar_pdf(compra, simbolo_moeda)
+    if caminho:
+        print(f"  📄 PDF: {caminho}")
+        return caminho
+    return None
+
+
+# ─────────────────────────────────────────────
 #  SALVAR CSV INDIVIDUAL
 # ─────────────────────────────────────────────
 
@@ -531,11 +1746,11 @@ def salvar_csv_individual(c, sim):
     nome = DIR_CSV / f"{c['num_pedido']}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
     with open(nome, "w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["Pedido", "Fornecedor", "CNPJ/CPF", "Nota Fiscal",
+        w.writerow(["Pedido", "Fornecedor", "Cód. Fornecedor", "CNPJ/CPF", "Nota Fiscal",
                     "Data Compra", "Data Faturamento", "Prazo", "Previsão Entrega",
                     "Pagamento", "Parcelas", "Vencimentos", "Centro Custo",
                     "Status", "Moeda", "Cotação BRL", "Frete", "Obs Geral"])
-        w.writerow([c['num_pedido'], c['fornecedor'], c['cnpj_cpf'], c['nota_fiscal'],
+        w.writerow([c['num_pedido'], c['fornecedor'], c.get('cod_fornecedor',''), c['cnpj_cpf'], c['nota_fiscal'],
                     c['data_compra'], c['data_faturamento'], c['prazo_entrega'], c['data_entrega_prev'],
                     c['pagamento'], c['parcelas'], "; ".join(c['vencimentos']), c['centro_custo'],
                     c['status'], c['moeda'], c['cotacao_brl'], c['frete'], c['obs_geral']])
@@ -559,7 +1774,7 @@ def salvar_csv_individual(c, sim):
 # ─────────────────────────────────────────────
 
 def atualizar_csv_geral(c, sim):
-    cabecalho = ["Pedido", "Data Compra", "Fornecedor", "CNPJ/CPF", "Nota Fiscal",
+    cabecalho = ["Pedido", "Data Compra", "Fornecedor", "Cód. Fornecedor", "CNPJ/CPF", "Nota Fiscal",
                  "Status", "Pagamento", "Centro Custo", "Moeda", "Total Final", "Total Final BRL",
                  "Data Registro"]
     existe = HISTORICO_CSV.exists()
@@ -567,8 +1782,8 @@ def atualizar_csv_geral(c, sim):
         w = csv.writer(f)
         if not existe:
             w.writerow(cabecalho)
-        w.writerow([c['num_pedido'], c['data_compra'], c['fornecedor'], c['cnpj_cpf'],
-                    c['nota_fiscal'], c['status'], c['pagamento'], c['centro_custo'],
+        w.writerow([c['num_pedido'], c['data_compra'], c['fornecedor'], c.get('cod_fornecedor',''),
+                    c['cnpj_cpf'], c['nota_fiscal'], c['status'], c['pagamento'], c['centro_custo'],
                     c['moeda'], c['total_final'], c['total_final_brl'], c['data_registro']])
     print(f"  📋 Histórico geral: {HISTORICO_CSV}")
 
@@ -588,6 +1803,7 @@ def consultar_historico():
     print("  [3] Buscar por período")
     print("  [4] Buscar por status")
     print("  [5] Relatório por fornecedor (total gasto)")
+    print("  [6] Gerar PDF de um pedido")
     print("  [0] Voltar")
     op = input("  Opção: ").strip()
 
@@ -620,6 +1836,25 @@ def consultar_historico():
         listar_compras(filtrado, f"Status: {status_busca}")
     elif op == "5":
         relatorio_fornecedor(historico)
+    elif op == "6":
+        _gerar_pdf_pedido_interativo(historico)
+
+def _gerar_pdf_pedido_interativo(historico=None):
+    """Solicita número de pedido e gera PDF. Pode ser chamada de qualquer menu."""
+    if historico is None:
+        historico = carregar_historico()
+    if not historico:
+        print("\n  Nenhum pedido registrado.")
+        return
+    listar_compras(historico)
+    num = input_texto("\n  Número do pedido para gerar PDF: ").upper()
+    _, idx, compra = _compra_por_pedido(num)
+    if idx is None:
+        print(f"  ⚠  Pedido '{num}' não encontrado.")
+        return
+    moeda = compra.get("moeda", "BRL")
+    sim   = {"BRL": "R$", "USD": "US$", "EUR": "€"}.get(moeda, "R$")
+    imprimir_ou_gerar_pdf(compra, sim)
 
 def listar_compras(lista, titulo_filtro="Todas"):
     if not lista:
@@ -700,6 +1935,10 @@ def atualizar_compra():
 
     atualizar_historico_compra(historico)
     print(f"  ✔  Pedido {num} salvo.")
+    if input_sim_nao("  Deseja gerar PDF atualizado deste pedido? (s/n): ") == "s":
+        moeda = c.get("moeda", "BRL")
+        sim   = {"BRL": "R$", "USD": "US$", "EUR": "€"}.get(moeda, "R$")
+        imprimir_ou_gerar_pdf(c, sim)
 
 # ─────────────────────────────────────────────
 #  PERSISTÊNCIA DE OCORRÊNCIAS
@@ -1126,7 +2365,6 @@ def painel_entregas():
 
     hoje = datetime.now()
 
-    # Alertas de atraso
     atrasados = []
     for c in historico:
         if c["status"] in ("Recebida", "Cancelada"):
@@ -1147,7 +2385,6 @@ def painel_entregas():
                   f"{dias} dia(s) de atraso | {ent.get('status_entrega', c['status'])}")
         linha("─", 50)
 
-    # Entregas nos próximos 3 dias
     proximos = []
     for c in historico:
         if c["status"] in ("Recebida", "Cancelada"):
@@ -1270,6 +2507,8 @@ def menu_principal():
         print("  [2] Consultar histórico")
         print("  [3] Atualizar pedido (status / recebimento / NF)")
         print("  [4] Gestão de Entregas")
+        print("  [5] Fornecedores")
+        print("  [6] Produtos")
         print("  [0] Sair")
         linha()
         op = input("  Opção: ").strip()
@@ -1281,6 +2520,10 @@ def menu_principal():
             atualizar_compra()
         elif op == "4":
             menu_entregas()
+        elif op == "5":
+            menu_fornecedores()
+        elif op == "6":
+            menu_produtos()
         elif op == "0":
             print("\n  Até logo!\n")
             break

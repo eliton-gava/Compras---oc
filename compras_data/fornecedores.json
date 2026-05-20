@@ -1,0 +1,23 @@
+[
+  {
+    "codigo": "FOR-0001",
+    "nome": "GAVA TRANSPORTES",
+    "nome_fantasia": "GAVA LOGISTICA",
+    "cnpj_cpf": "55.397.440/0001-16",
+    "ie": "",
+    "categoria": "Transporte / Logística",
+    "contato": "GAVA",
+    "telefone": "48996996844",
+    "email": "eliton@proxpect.com.br",
+    "endereco": "",
+    "cidade": "Criciuma",
+    "estado": "SC",
+    "prazo_medio": "5",
+    "cond_pagto": "30/60",
+    "obs": "",
+    "ativo": true,
+    "data_cadastro": "20/05/2026 11:38:12",
+    "total_compras": 2,
+    "valor_total_brl": 1062.75
+  }
+]

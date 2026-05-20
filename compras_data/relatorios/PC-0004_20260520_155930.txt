@@ -1,0 +1,33 @@
+==================================================
+         RELATÓRIO DE COMPRA
+==================================================
+Pedido            : PC-0004
+Registro          : 20/05/2026 15:59:30
+Status            : Pendente
+--------------------------------------------------
+Fornecedor        : GAVA TRANSPORTES
+Cód. Fornecedor   : FOR-0001
+CNPJ/CPF          : 55.397.440/0001-16
+Data compra       : 20/05/2026
+Data faturamento  : 20/05/2026
+Prazo entrega     : 5 dias  (previsão: 25/05/2026)
+Pagamento         : [4] Dinheiro
+Centro de custo   : Administrativo
+Moeda             : BRL
+--------------------------------------------------
+
+  Código     : PROD-0001
+  Produto    : Agua 1L
+  Quantidade : 500
+  Valor unit.: R$ 0.99
+  ICMS       : 0.0%  | R$ 0.00
+  IPI        : 0.0%   | R$ 0.00
+  Desconto   : R$ 0.00
+  Subtotal   : R$ 495.00
+  ----------------------------------------------
+
+Subtotal produtos : R$ 495.00
+Desconto geral    : R$ 0.00
+Frete             : R$ 150.00
+TOTAL FINAL       : R$ 645.00
+==================================================

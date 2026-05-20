@@ -1,3 +1,5 @@
 Pedido,Data Compra,Fornecedor,CNPJ/CPF,Nota Fiscal,Status,Pagamento,Centro Custo,Moeda,Total Final,Total Final BRL,Data Registro
 PC-0001,07/05/2026,gava,00000000000000,,Pendente,[3] PIX,Manutenção,BRL,68.5,68.5,07/05/2026 17:53:59
 PC-0002,08/05/2026,SUPERMERCADO TESTE,00000000000000,,Aprovada,[1] Boleto,Administrativo,BRL,594.6,594.6,08/05/2026 16:01:16
+PC-0003,20/05/2026,GAVA TRANSPORTES,FOR-0001,55.397.440/0001-16,,Pendente,[1] Boleto,Estoque,BRL,417.75,417.75,20/05/2026 11:40:37
+PC-0004,20/05/2026,GAVA TRANSPORTES,FOR-0001,55.397.440/0001-16,,Pendente,[4] Dinheiro,Administrativo,BRL,645.0,645.0,20/05/2026 15:59:30

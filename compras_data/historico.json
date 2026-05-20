@@ -156,5 +156,103 @@
       "qtd_recebida": 10,
       "obs_entrega": ""
     }
+  },
+  {
+    "num_pedido": "PC-0003",
+    "fornecedor": "GAVA TRANSPORTES",
+    "cod_fornecedor": "FOR-0001",
+    "cnpj_cpf": "55.397.440/0001-16",
+    "nota_fiscal": "",
+    "data_compra": "20/05/2026",
+    "data_faturamento": "20/05/2026",
+    "prazo_entrega": "5 dias",
+    "data_entrega_prev": "25/05/2026",
+    "data_recebimento": "",
+    "pagamento": "[1] Boleto",
+    "parcelas": 2,
+    "vencimentos": [
+      "15/06/2026",
+      "15/07/2026"
+    ],
+    "centro_custo": "Estoque",
+    "status": "Pendente",
+    "moeda": "BRL",
+    "cotacao_brl": 1.0,
+    "frete": 150.0,
+    "frete_brl": 150.0,
+    "obs_geral": "",
+    "produtos": [
+      {
+        "codigo": "1",
+        "nome": "Agua",
+        "valor_unit": 1.5,
+        "quantidade": 150,
+        "icms_perc": 12.0,
+        "icms_valor": 27.0,
+        "ipi_perc": 7.0,
+        "ipi_valor": 15.750000000000002,
+        "desconto": 0.0,
+        "subtotal": 267.75,
+        "subtotal_brl": 267.75,
+        "obs": ""
+      }
+    ],
+    "total_produtos": 267.75,
+    "desc_geral": 0.0,
+    "total_final": 417.75,
+    "total_final_brl": 417.75,
+    "data_registro": "20/05/2026 11:40:37",
+    "entrega": {
+      "status_entrega": "Aguardando envio",
+      "historico_status": []
+    }
+  },
+  {
+    "num_pedido": "PC-0004",
+    "fornecedor": "GAVA TRANSPORTES",
+    "cod_fornecedor": "FOR-0001",
+    "cnpj_cpf": "55.397.440/0001-16",
+    "nota_fiscal": "",
+    "data_compra": "20/05/2026",
+    "data_faturamento": "20/05/2026",
+    "prazo_entrega": "5 dias",
+    "data_entrega_prev": "25/05/2026",
+    "data_recebimento": "",
+    "pagamento": "[4] Dinheiro",
+    "parcelas": 1,
+    "vencimentos": [],
+    "centro_custo": "Administrativo",
+    "status": "Pendente",
+    "moeda": "BRL",
+    "cotacao_brl": 1.0,
+    "frete": 150.0,
+    "frete_brl": 150.0,
+    "obs_geral": "",
+    "produtos": [
+      {
+        "codigo_produto": "PROD-0001",
+        "codigo": "PROD-0001",
+        "nome": "Agua 1L",
+        "valor_unit": 0.99,
+        "quantidade": 500,
+        "icms_perc": 0.0,
+        "icms_valor": 0.0,
+        "ipi_perc": 0.0,
+        "ipi_valor": 0.0,
+        "desconto": 0.0,
+        "subtotal": 495.0,
+        "subtotal_brl": 495.0,
+        "obs": ""
+      }
+    ],
+    "total_produtos": 495.0,
+    "desc_geral": 0.0,
+    "total_final": 645.0,
+    "total_final_brl": 645.0,
+    "data_registro": "20/05/2026 15:59:30",
+    "entrega": {
+      "status_entrega": "Aguardando envio",
+      "historico_status": []
+    }
   }
 ]

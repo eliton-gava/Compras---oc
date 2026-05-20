@@ -1,0 +1,22 @@
+[
+  {
+    "codigo": "PROD-0001",
+    "nome": "Agua 1L",
+    "descricao": "",
+    "marca": "Cristal",
+    "modelo": "",
+    "categoria": "Administrativo",
+    "unidade": "UN",
+    "ncm": "",
+    "ean": "",
+    "icms_padrao": 0.0,
+    "ipi_padrao": 0.0,
+    "preco_medio": 0.99,
+    "estoque_minimo": 0.0,
+    "obs": "",
+    "ativo": true,
+    "data_cadastro": "20/05/2026 15:57:06",
+    "total_compras": 1,
+    "valor_total_brl": 495.0
+  }
+]
