@@ -1,0 +1,33 @@
+==================================================
+         RELATÓRIO DE COMPRA
+==================================================
+Pedido            : PC-0006
+Registro          : 20/05/2026 17:08:31
+Status            : Pendente
+--------------------------------------------------
+Fornecedor        : GAVA TRANSPORTES
+Cód. Fornecedor   : FOR-0001
+CNPJ/CPF          : 55.397.440/0001-16
+Data compra       : 20/05/2026
+Data faturamento  : 20/05/2026
+Prazo entrega     : 5 dias  (previsão: 25/05/2026)
+Pagamento         : [1] Boleto
+Centro de custo   : Administrativo
+Moeda             : BRL
+--------------------------------------------------
+
+  Código     : PROD-0002
+  Produto    : Caneta
+  Quantidade : 10
+  Valor unit.: R$ 1.00
+  ICMS       : 12.0%  | R$ 1.20
+  IPI        : 7.0%   | R$ 0.70
+  Desconto   : R$ 5.00
+  Subtotal   : R$ 6.90
+  ----------------------------------------------
+
+Subtotal produtos : R$ 6.90
+Desconto geral    : R$ 0.00
+Frete             : R$ 10.00
+TOTAL FINAL       : R$ 16.90
+==================================================

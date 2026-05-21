@@ -302,5 +302,53 @@
       "status_entrega": "Aguardando envio",
       "historico_status": []
     }
+  },
+  {
+    "num_pedido": "PC-0006",
+    "fornecedor": "GAVA TRANSPORTES",
+    "cod_fornecedor": "FOR-0001",
+    "cnpj_cpf": "55.397.440/0001-16",
+    "nota_fiscal": "",
+    "data_compra": "20/05/2026",
+    "data_faturamento": "20/05/2026",
+    "prazo_entrega": "5 dias",
+    "data_entrega_prev": "25/05/2026",
+    "data_recebimento": "",
+    "pagamento": "[1] Boleto",
+    "parcelas": 1,
+    "vencimentos": [],
+    "centro_custo": "Administrativo",
+    "status": "Pendente",
+    "moeda": "BRL",
+    "cotacao_brl": 1.0,
+    "frete": 10.0,
+    "frete_brl": 10.0,
+    "obs_geral": "",
+    "produtos": [
+      {
+        "codigo_produto": "PROD-0002",
+        "codigo": "PROD-0002",
+        "nome": "Caneta",
+        "valor_unit": 1.0,
+        "quantidade": 10,
+        "icms_perc": 12.0,
+        "icms_valor": 1.2,
+        "ipi_perc": 7.0,
+        "ipi_valor": 0.7000000000000001,
+        "desconto": 5.0,
+        "subtotal": 6.899999999999999,
+        "subtotal_brl": 6.899999999999999,
+        "obs": ""
+      }
+    ],
+    "total_produtos": 6.899999999999999,
+    "desc_geral": 0.0,
+    "total_final": 16.9,
+    "total_final_brl": 16.9,
+    "data_registro": "20/05/2026 17:08:31",
+    "entrega": {
+      "status_entrega": "Aguardando envio",
+      "historico_status": []
+    }
   }
 ]
