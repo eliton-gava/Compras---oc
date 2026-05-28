@@ -1,0 +1,33 @@
+==================================================
+         RELATÓRIO DE COMPRA
+==================================================
+Pedido            : PC-0007
+Registro          : 27/05/2026 17:19:54
+Status            : Pendente
+--------------------------------------------------
+Fornecedor        : GAVA TRANSPORTES
+Cód. Fornecedor   : FOR-0001
+CNPJ/CPF          : 55.397.440/0001-16
+Data compra       : 27/05/2026
+Data faturamento  : 27/05/2026
+Prazo entrega     : 5 dias  (previsão: 01/06/2026)
+Pagamento         : [1] Boleto
+Centro de custo   : Administrativo
+Moeda             : BRL
+--------------------------------------------------
+
+  Código     : agua
+  Produto    : agua
+  Quantidade : 2
+  Valor unit.: R$ 10.00
+  ICMS       : 12.0%  | R$ 2.40
+  IPI        : 7.0%   | R$ 1.40
+  Desconto   : R$ 0.00
+  Subtotal   : R$ 23.80
+  ----------------------------------------------
+
+Subtotal produtos : R$ 23.80
+Desconto geral    : R$ 0.00
+Frete             : R$ 10.00
+TOTAL FINAL       : R$ 33.80
+==================================================

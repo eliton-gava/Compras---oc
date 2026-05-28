@@ -350,5 +350,53 @@
       "status_entrega": "Aguardando envio",
       "historico_status": []
     }
+  },
+  {
+    "num_pedido": "PC-0007",
+    "fornecedor": "GAVA TRANSPORTES",
+    "cod_fornecedor": "FOR-0001",
+    "cnpj_cpf": "55.397.440/0001-16",
+    "nota_fiscal": "",
+    "data_compra": "27/05/2026",
+    "data_faturamento": "27/05/2026",
+    "prazo_entrega": "5 dias",
+    "data_entrega_prev": "01/06/2026",
+    "data_recebimento": "",
+    "pagamento": "[1] Boleto",
+    "parcelas": 1,
+    "vencimentos": [],
+    "centro_custo": "Administrativo",
+    "status": "Pendente",
+    "moeda": "BRL",
+    "cotacao_brl": 1.0,
+    "frete": 10.0,
+    "frete_brl": 10.0,
+    "obs_geral": "",
+    "produtos": [
+      {
+        "codigo_produto": "",
+        "codigo": "agua",
+        "nome": "agua",
+        "valor_unit": 10.0,
+        "quantidade": 2,
+        "icms_perc": 12.0,
+        "icms_valor": 2.4,
+        "ipi_perc": 7.0,
+        "ipi_valor": 1.4000000000000001,
+        "desconto": 0.0,
+        "subtotal": 23.799999999999997,
+        "subtotal_brl": 23.799999999999997,
+        "obs": ""
+      }
+    ],
+    "total_produtos": 23.799999999999997,
+    "desc_geral": 0.0,
+    "total_final": 33.8,
+    "total_final_brl": 33.8,
+    "data_registro": "27/05/2026 17:19:54",
+    "entrega": {
+      "status_entrega": "Aguardando envio",
+      "historico_status": []
+    }
   }
 ]
